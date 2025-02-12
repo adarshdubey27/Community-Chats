@@ -1,5 +1,5 @@
 const http = require('http');
-const WebSocket = require('ws');
+const ws = new WebSocket('wss://community-chats.onrender.com');
 const fs = require('fs');
 const path = require('path');
 
