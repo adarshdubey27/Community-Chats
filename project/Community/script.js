@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://localhost:3000');
+const ws = new WebSocket('wss://community-chats.onrender.com');
 let isAuthenticated = false;
 
 // Debugging: Log WebSocket events
