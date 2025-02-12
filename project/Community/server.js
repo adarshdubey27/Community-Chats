@@ -1,5 +1,5 @@
 const http = require('http');
-const ws = new WebSocket('wss://community-chats.onrender.com');
+const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 
@@ -91,7 +91,7 @@ wss.on('connection', (ws) => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
