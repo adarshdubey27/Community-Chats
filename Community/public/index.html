@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin-Only Community Chat</title>
+    <style>
+        /* Chat Container */
+        #chat-container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        /* Chat Messages Area */
+        #chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+            scroll-behavior: smooth;
+        }
+    
+        /* Individual Message Styling */
+        .message {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            font-size: 14px;
+            color: #333;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+    
+        /* Admin Message Styling */
+        .admin-message {
+            background-color: #007bff;
+            color: #fff;
+            align-self: flex-start;
+        }
+    
+        /* User Message Styling */
+        .user-message {
+            background-color: #4caf50;
+            color: #fff;
+            align-self: flex-end;
+        }
+    
+        /* Message Alignment */
+        .message-container {
+            display: flex;
+            justify-content: flex-start;
+        }
+    
+        .user-message-container {
+            justify-content: flex-end;
+        }
+    
+        /* Media Preview */
+        .media-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 5px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    
+        /* Admin Controls */
+        #admin-controls {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #chat-container {
+                width: 95%;
+                padding: 15px;
+            }
+    
+            #chat-messages {
+                height: 300px;
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-messages"></div>
+        
+        <!-- Admin Controls (visible only after auth) -->
+        <div id="admin-controls">
+            <textarea id="message-input" placeholder="Type your message..." rows="3"></textarea>
+            <button onclick="sendMessage()">Send Message</button>
+            <input type="file" id="media-upload" accept="image/*, video/*" multiple>
+            <button onclick="uploadMedia()">Upload Media</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <input type="password" id="admin-password" placeholder="Admin Password">
+            <button onclick="authenticateAdmin()">Login as Admin</button>
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:3000');
+let isAuthenticated = false;
+
+// Debugging: Log WebSocket events
+ws.onopen = () => {
+    console.log('WebSocket connection established');
+};
+
+ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+};
+
+ws.onclose = () => {
+    console.log('WebSocket connection closed');
+};
+
+ws.onmessage = (event) => {
+    console.log('Message received:', event.data);
+    const data = JSON.parse(event.data);
+
+    if (data.type === 'auth-response') {
+        if (data.success) {
+            isAuthenticated = true;
+            document.getElementById('admin-controls').style.display = 'block';
+            document.getElementById('login-form').style.display = 'none';
+            console.log('Admin authenticated');
+        } else {
+            alert('Authentication failed');
+        }
+    } else if (data.type === 'history') {
+        // Display message history
+        data.messages.forEach(message => displayMessage(message));
+    } else if (data.type === 'message') {
+        // Display new message
+        displayMessage(data.content);
+    }
+};
+
+function authenticateAdmin() {
+    const password = document.getElementById('admin-password').value;
+    if (password) {
+        console.log('Sending authentication request');
+        ws.send(JSON.stringify({
+            type: 'auth',
+            password: password
+        }));
+    }
+}
+
+function sendMessage() {
+    if (!isAuthenticated) {
+        console.error('Not authenticated');
+        return;
+    }
+
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+
+    if (message) {
+        console.log('Sending message:', message);
+        ws.send(JSON.stringify({
+            type: 'message',
+            content: {
+                type: 'text',
+                data: message,
+                timestamp: new Date().toISOString()
+            }
+        }));
+        messageInput.value = '';
+    }
+}
+
+function uploadMedia() {
+    if (!isAuthenticated) {
+        console.error('Not authenticated');
+        return;
+    }
+
+    const fileInput = document.getElementById('media-upload');
+    const files = fileInput.files;
+
+    if (files.length === 0) {
+        alert('Please select a file to upload.');
+        return;
+    }
+
+    for (let file of files) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const base64Data = event.target.result;
+            console.log('Sending media file:', file.name);
+            ws.send(JSON.stringify({
+                type: 'message',
+                content: {
+                    type: file.type.startsWith('image') ? 'image' : 'video',
+                    data: base64Data,
+                    timestamp: new Date().toISOString()
+                }
+            }));
+        };
+        reader.onerror = (error) => {
+            console.error('Error reading file:', error);
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function displayMessage(message) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message';
+
+    let content;
+    if (message.type === 'text') {
+        content = document.createElement('p');
+        content.textContent = message.data;
+    } else if (message.type === 'image') {
+        content = document.createElement('img');
+        content.src = message.data;
+        content.className = 'media-preview';
+    } else if (message.type === 'video') {
+        content = document.createElement('video');
+        content.src = message.data;
+        content.className = 'media-preview';
+        content.controls = true;
+    }
+
+    const timestamp = document.createElement('small');
+    timestamp.textContent = new Date(message.timestamp).toLocaleString();
+
+    messageDiv.appendChild(content);
+    messageDiv.appendChild(timestamp);
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+    </script>
+</body>
+</html>
