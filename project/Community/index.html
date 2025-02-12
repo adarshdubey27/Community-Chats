@@ -5,6 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Chat</title>
     <link rel="stylesheet" href="styles.css">
+     <style>
+        /* Chat Container */
+        #chat-container {
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    
+        /* Chat Messages Area */
+        #chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
+            scroll-behavior: smooth;
+        }
+    
+        /* Individual Message Styling */
+        .message {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            background-color: #f8f9fa;
+            font-size: 14px;
+            color: #333;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+    
+        /* Admin Message Styling */
+        .admin-message {
+            background-color: #007bff;
+            color: #fff;
+            align-self: flex-start;
+        }
+    
+        /* User Message Styling */
+        .user-message {
+            background-color: #4caf50;
+            color: #fff;
+            align-self: flex-end;
+        }
+    
+        /* Message Alignment */
+        .message-container {
+            display: flex;
+            justify-content: flex-start;
+        }
+    
+        .user-message-container {
+            justify-content: flex-end;
+        }
+    
+        /* Media Preview */
+        .media-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 5px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    
+        /* Admin Controls */
+        #admin-controls {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #chat-container {
+                width: 95%;
+                padding: 15px;
+            }
+    
+            #chat-messages {
+                height: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="chat-container">
